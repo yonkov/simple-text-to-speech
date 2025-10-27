@@ -1,0 +1,83 @@
+:root {
+	--stts-color-dark-bg: #1d2327;
+	--stts-color-dark-text: #fff;
+	--stts-color-light-bg: #f0f0f1;
+	--stts-color-light-text: #1d2327;
+	--stts-color-border: #c3c4c7;
+	--stts-spacing-sm: 8px;
+	--stts-spacing-md: 12px;
+	--stts-spacing-lg: 20px;
+	--stts-border-radius: 4px;
+	--stts-transition: 0.2s ease;
+}
+
+/* Screen reader only text */
+.stts-screen-reader-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+/* Base audio player container */
+.stts-audio-container {
+	margin: var(--stts-spacing-md) 0;
+	display: block;
+}
+
+/* Audio Player Style */
+.stts-audio-container audio {
+	width: 100%;
+	max-width: 600px;
+	margin: var(--stts-spacing-md) 0;
+}
+
+/* Icon Only Style - SVG icon that reveals player on click */
+.stts-style-icon {
+	display: flex;
+	align-items: center;
+	gap: var(--stts-spacing-md);
+	margin: var(--stts-spacing-md) 0;
+}
+
+.stts-icon-button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	vertical-align: middle;
+	line-height: 1;
+	width: 1.5em;
+	height: 1.5em;
+}
+
+.stts-icon-button svg {
+	width: 100%;
+	height: 100%;
+	color: var(--stts-color-light-text);
+	display: block;
+}
+
+.stts-style-icon audio {
+	display: none;
+	max-width: 400px;
+}
+
+.stts-player-visible audio {
+	display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.stts-audio-container audio {
+		max-width: 100%;
+	}
+}

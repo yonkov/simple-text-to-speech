@@ -1,0 +1,69 @@
+/**
+ * Editor Panel Styles
+ *
+ * @package SimpleTextToSpeech
+ * @since 1.0.0
+ */
+
+.stts-document-panel .components-notice {
+	margin-bottom: 12px;
+}
+
+.stts-usage-info {
+	margin-bottom: 16px;
+	padding: 12px;
+	background: #f0f0f1;
+	border-radius: 4px;
+}
+
+.stts-usage-bar {
+	height: 8px;
+	background: #fff;
+	border-radius: 4px;
+	overflow: hidden;
+	margin-bottom: 8px;
+}
+
+.stts-usage-fill {
+	height: 100%;
+	background: linear-gradient(90deg, #00a32a 0%, #00a32a 70%, #d63638 100%);
+	transition: width 0.3s ease;
+}
+
+.stts-usage-text {
+	margin: 0;
+	font-size: 12px;
+	color: #1e1e1e;
+}
+
+.stts-audio-info {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.stts-audio-info button {
+	justify-content: center;
+}
+
+.stts-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.stts-audio-player {
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+.stts-action-buttons {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.stts-action-buttons button {
+	width: 100%;
+	justify-content: center;
+}
