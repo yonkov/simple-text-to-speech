@@ -11,7 +11,7 @@ Tested up to: 6.8
 Stable tag: 1.0.0
 License: GPLv2
 
-Easily generate audio version of your content using Google Cloud Text to Speech API.
+Easily generate audio version of your content using Google Cloud Text-to-Speech API.
 
 == Description ==
 
@@ -85,13 +85,6 @@ Google Cloud Text-to-Speech supports over 30 languages and variants. You can fin
 = 6. Does this plugin cost money? =
 
 The plugin is free but Google Cloud Text-to-Speech is a paid service with a generous free tier of 1 million characters per month for WaveNet voices, which is what this plugin uses. Check the [Google Cloud pricing](https://cloud.google.com/text-to-speech/pricing) for additional information.
-
-== Screenshots ==
-
-1. Settings page with Google Cloud API configuration
-2. Text to Speech panel in the Block Editor sidebar
-3. Generated audio player in the editor panel
-4. FAQ tab with helpful information
 
 == Changelog ==
 
