@@ -295,7 +295,16 @@ function stts_ajax_generate_audio() {
 	}
 	
 	// Redirect back to post edit screen.
-	wp_safe_redirect( admin_url( 'post.php?post=' . $post_id . '&action=edit&stts_message=generated' ) );
+	$redirect_url = add_query_arg(
+		array(
+			'post'         => $post_id,
+			'action'       => 'edit',
+			'stts_message' => 'generated',
+			'stts_nonce'   => wp_create_nonce( 'stts_notice_' . $post_id ),
+		),
+		admin_url( 'post.php' )
+	);
+	wp_safe_redirect( $redirect_url );
 	exit;
 }
 add_action( 'wp_ajax_stts_generate_audio', 'stts_ajax_generate_audio' );
@@ -328,7 +337,16 @@ function stts_ajax_delete_audio() {
 	}
 	
 	// Redirect back to post edit screen.
-	wp_safe_redirect( admin_url( 'post.php?post=' . $post_id . '&action=edit&stts_message=deleted' ) );
+	$redirect_url = add_query_arg(
+		array(
+			'post'         => $post_id,
+			'action'       => 'edit',
+			'stts_message' => 'deleted',
+			'stts_nonce'   => wp_create_nonce( 'stts_notice_' . $post_id ),
+		),
+		admin_url( 'post.php' )
+	);
+	wp_safe_redirect( $redirect_url );
 	exit;
 }
 add_action( 'wp_ajax_stts_delete_audio', 'stts_ajax_delete_audio' );
@@ -339,7 +357,14 @@ add_action( 'wp_ajax_stts_delete_audio', 'stts_ajax_delete_audio' );
  * @since 1.0.0
  */
 function stts_admin_notices() {
-	if ( ! isset( $_GET['stts_message'] ) ) {
+	if ( ! isset( $_GET['stts_message'] ) || ! isset( $_GET['stts_nonce'] ) || ! isset( $_GET['post'] ) ) {
+		return;
+	}
+	
+	$post_id = absint( $_GET['post'] );
+	
+	// Verify nonce.
+	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['stts_nonce'] ) ), 'stts_notice_' . $post_id ) ) {
 		return;
 	}
 	
