@@ -164,6 +164,34 @@ function stts_prepare_text( $text ) {
 	$charset = get_option( 'blog_charset', 'UTF-8' );
 	$text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, $charset );
 
+	// Add pauses after paragraphs, headings, figcaptions, lists, and blockquotes.
+	// This helps users distinguish sections and improves navigation.
+	
+	// Paragraphs: pause after each paragraph to separate content blocks.
+	$text = str_ireplace( '</p>', '. ', $text );
+	
+	// Headings: pause after for clear section breaks.
+	$text = preg_replace( '#</h[1-6]>#i', '. ', $text );
+	
+	// Figcaptions: pause after image captions.
+	$text = str_ireplace( '</figcaption>', '. ', $text );
+	
+	// List items: pause after each item for enumeration clarity.
+	$text = str_ireplace( '</li>', '. ', $text );
+	
+	// Blockquotes - add pauses for quoted content
+	$text = preg_replace( '#<blockquote[^>]*>#i', '. ', $text );
+	$text = str_ireplace( '</blockquote>', '. ', $text );
+	
+	// Extract image alt text before stripping tags
+	$text = preg_replace_callback(
+		'#<img[^>]+alt=["\']([^"\']*)["\'][^>]*>#i',
+		function( $matches ) {
+			return ! empty( $matches[1] ) ? $matches[1] . '. ' : '';
+		},
+		$text
+	);
+
 	// Remove shortcodes and HTML tags.
 	$text = strip_shortcodes( $text );
 	$text = wp_strip_all_tags( $text );
@@ -182,24 +210,48 @@ function stts_prepare_text( $text ) {
 		"\xE2\x80\xA6", // … ellipsis
 		"\x60",         // ` backtick
 	);
+	// Em/en dash should act as a short pause but we replace them with a
+	// single space (not a period) to avoid inserting sentence-ending
+	// punctuation that may change prosody. Ellipsis is converted to a single
+	// period below.
 	$replace = array("'", "'", '"', '"', "'", '"', ' ', ' ', '.', '');
 	$text = str_replace( $search, $replace, $text );
 
-	// Replace ampersand with the word 'and' so phrases like "A & B" read
-	// naturally as "A and B" instead of pronouncing the symbol.
+	// Replace ampersand with the word 'and'
 	$text = str_replace( '&', ' and ', $text );
 
-	// Remove / normalize punctuation characters that often get read aloud
-	// (colon, semicolon, slashes, braces, etc.). Replace with a space so
-	// words remain separated.
-	$punct_to_space = array( ':', ';', '/', '\\', '(', ')', '[', ']', '{', '}', '<', '>', '*', '=', '#', '@', '%', '^' );
+	// Semicolons should act as a short pause. Replace them with a period +
+	// space so the TTS inserts a small break.
+	$text = str_replace( ';', '. ', $text );
+
+	// Replace colons with a pause except when they are part of a time-like
+	// pattern (digits:digits), e.g. 10:00 should remain intact. Use a regex
+	// that replaces colons not surrounded by digits.
+	$text = preg_replace( '/(?<!\d):(?!\d)/', '. ', $text );
+
+	// Preserve hyphens in compound words, phone numbers, and
+	// cardinal numbers. Only replace standalone hyphens (space-hyphen-space)
+	// with pauses, not hyphens within words like "well-known" or "twenty-five".
+	$text = preg_replace( '/\s+-\s+/', '. ', $text );  // " - " becomes pause
+
+	// Handle angle brackets like hyphens: preserve in sequences (A > B or 5 < 10)
+	// but convert standalone ones (with spaces on both sides) to pauses.
+	// This allows navigation sequences like "Settings > API" to be read naturally
+	// while mathematical comparisons like "x > 5" are preserved.
+	$text = preg_replace( '/\s+>\s+/', ' > ', $text );
+	$text = preg_replace( '/\s+<\s+/', ' < ', $text );
+
+	// Underscore characters are typically not spoken and often appear in
+	// identifiers or filenames; remove them (replace with space) so they are
+	// not read aloud.
+	$text = str_replace( '_', ' ', $text );
+
+	// Remove / normalize other punctuation characters that often get read aloud
+	// (slashes, braces, etc.). Replace with a space so words remain separated.
+	$punct_to_space = array( '/', '\\', '(', ')', '[', ']', '{', '}', '*', '#', '@', '%', '^' );
 	$text = str_replace( $punct_to_space, ' ', $text );
 
-	// Remove remaining double-quote characters entirely. Many TTS engines will
-	// either ignore punctuation or may read the word "quote" for some quote
-	// characters — removing them prevents the engine from announcing them.
-	// Keep single quotes (apostrophes) because they are important in
-	// contractions (don't -> don't).
+	// Remove remaining double-quote characters
 	$text = str_replace( '"', '', $text );
 
 	// Normalize whitespace.
@@ -211,6 +263,9 @@ function stts_prepare_text( $text ) {
 	// Collapse repeated dots ("..." -> ".") to avoid the engine reading
 	// each dot as a separate pause or announcing ellipsis.
 	$text = preg_replace( '/\.{2,}/', '.', $text );
+	
+	// Collapse ". ." patterns (period-space-period) into single period.
+	$text = preg_replace( '/\.\s+\./', '.', $text );
 
 	// Limit to 5000 characters (Google Cloud TTS limit).
 	if ( strlen( $text ) > 5000 ) {

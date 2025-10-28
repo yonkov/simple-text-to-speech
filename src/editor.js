@@ -3,7 +3,7 @@ import { PluginDocumentSettingPanel } from '@wordpress/editor';
 import { Button, Notice, Spinner } from '@wordpress/components';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { store as editorStore } from '@wordpress/editor';
-import { useState, useEffect } from '@wordpress/element';
+import { useState, useEffect, useRef } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { MediaUpload, MediaUploadCheck } from '@wordpress/block-editor';
@@ -28,6 +28,9 @@ function TextToSpeechPanel() {
 
 	const { editPost } = useDispatch( editorStore );
 
+	// Action to open the document sidebar so the plugin panel is visible by default.
+	const { openGeneralSidebar } = useDispatch( 'core/edit-post' );
+
 	// Check if API key is configured.
 	const hasApiKey = window.sttsData?.hasApiKey || false;
 	
@@ -45,6 +48,19 @@ function TextToSpeechPanel() {
 		},
 		[postId]
 	);
+
+	// Open the Document sidebar once when a post is available so the
+	// PluginDocumentSettingPanel is visible by default. Guard with a ref so
+	// we only open it a single time during this component lifecycle.
+	const _sidebarOpened = useRef( false );
+	useEffect( function () {
+		if ( postId && ! _sidebarOpened.current ) {
+			if ( typeof openGeneralSidebar === 'function' ) {
+				openGeneralSidebar( 'edit-post/document' );
+			}
+			_sidebarOpened.current = true;
+		}
+	}, [ postId, openGeneralSidebar ] );
 
 	/**
 	 * Load current audio status
