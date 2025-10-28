@@ -159,23 +159,64 @@ function stts_get_speaking_style_params( $style ) {
  * @since 1.0.0
  */
 function stts_prepare_text( $text ) {
-	// Remove HTML tags.
-	$text = wp_strip_all_tags( $text );
-	
-	// Remove shortcodes.
+	// Decode HTML entities first so sequences like &quot; are converted to actual
+	// characters and won't be spoken by the TTS engine as entity names.
+	$charset = get_option( 'blog_charset', 'UTF-8' );
+	$text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, $charset );
+
+	// Remove shortcodes and HTML tags.
 	$text = strip_shortcodes( $text );
-	
+	$text = wp_strip_all_tags( $text );
+
+	// Normalize common "smart" quote characters to plain ASCII equivalents.
+	// Smart quotes often come from copy/paste and can confuse some TTS engines.
+	$search = array(
+		"\xE2\x80\x98", // ‘ left single quotation mark
+		"\xE2\x80\x99", // ’ right single quotation mark
+		"\xE2\x80\x9C", // “ left double quotation mark
+		"\xE2\x80\x9D", // ” right double quotation mark
+		"\xE2\x80\xB2", // ′ prime
+		"\xE2\x80\xB3", // ″ double prime
+		"\xE2\x80\x94", // — em dash
+		"\xE2\x80\x93", // – en dash
+		"\xE2\x80\xA6", // … ellipsis
+		"\x60",         // ` backtick
+	);
+	$replace = array("'", "'", '"', '"', "'", '"', ' ', ' ', '.', '');
+	$text = str_replace( $search, $replace, $text );
+
+	// Replace ampersand with the word 'and' so phrases like "A & B" read
+	// naturally as "A and B" instead of pronouncing the symbol.
+	$text = str_replace( '&', ' and ', $text );
+
+	// Remove / normalize punctuation characters that often get read aloud
+	// (colon, semicolon, slashes, braces, etc.). Replace with a space so
+	// words remain separated.
+	$punct_to_space = array( ':', ';', '/', '\\', '(', ')', '[', ']', '{', '}', '<', '>', '*', '=', '#', '@', '%', '^' );
+	$text = str_replace( $punct_to_space, ' ', $text );
+
+	// Remove remaining double-quote characters entirely. Many TTS engines will
+	// either ignore punctuation or may read the word "quote" for some quote
+	// characters — removing them prevents the engine from announcing them.
+	// Keep single quotes (apostrophes) because they are important in
+	// contractions (don't -> don't).
+	$text = str_replace( '"', '', $text );
+
 	// Normalize whitespace.
 	$text = preg_replace( '/\s+/', ' ', $text );
-	
+
 	// Trim.
 	$text = trim( $text );
-	
+
+	// Collapse repeated dots ("..." -> ".") to avoid the engine reading
+	// each dot as a separate pause or announcing ellipsis.
+	$text = preg_replace( '/\.{2,}/', '.', $text );
+
 	// Limit to 5000 characters (Google Cloud TTS limit).
 	if ( strlen( $text ) > 5000 ) {
 		$text = substr( $text, 0, 5000 );
 	}
-	
+
 	return $text;
 }
 
