@@ -1,7 +1,7 @@
 /**
  * Admin Styles
  *
- * @package SimpleTextToSpeech
+ * @package Simple Text to Speech
  * @since 1.0.0
  */
 
@@ -24,8 +24,7 @@
 }
 
 .stts-faq-item {
-	margin-bottom: 30px;
-	padding-bottom: var(--stts-admin-spacing-lg);
+	margin-bottom: var(--stts-admin-spacing-lg);
 	border-bottom: 1px solid #ddd;
 }
 
@@ -41,36 +40,6 @@
 .stts-faq-item p {
 	line-height: 1.6;
 	color: var(--stts-admin-color-text);
-}
-
-.stts-usage-meter {
-	max-width: 600px;
-}
-
-.stts-usage-bar {
-	height: 24px;
-	background: var(--stts-admin-color-light);
-	border: 1px solid var(--stts-admin-color-border);
-	border-radius: var(--stts-admin-border-radius);
-	overflow: hidden;
-	margin-bottom: var(--stts-admin-spacing-md);
-}
-
-.stts-usage-fill {
-	height: 100%;
-	background: linear-gradient(90deg, #00a32a 0%, #00a32a 70%, #d63638 100%);
-	transition: width 0.3s ease;
-}
-
-.stts-usage-text {
-	margin: var(--stts-admin-spacing-md) 0;
-	font-size: 14px;
-}
-
-.stts-usage-warning {
-	color: #d63638;
-	font-weight: 600;
-	margin: var(--stts-admin-spacing-md) 0;
 }
 
 /* Meta Box Styles */
@@ -90,5 +59,6 @@
 }
 
 .stts-meta-box-actions {
-	margin-top: 10px;
+	margin-top: 12px;
+	margin-bottom: 12px;
 }

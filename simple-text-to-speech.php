@@ -188,7 +188,13 @@ function stts_enqueue_meta_box_scripts() {
 	
 	// Enqueue WordPress media scripts for upload functionality.
 	wp_enqueue_media();
-	
+	// Enqueue admin styles for meta box (also used on settings page).
+	wp_enqueue_style(
+		'stts-admin-styles',
+		STTS_URL . 'admin/styles.css',
+		array(),
+		STTS_VERSION
+	);
 	wp_enqueue_script(
 		'stts-meta-box',
 		STTS_URL . 'admin/meta-box.js',
