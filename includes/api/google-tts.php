@@ -29,14 +29,14 @@ function stts_generate_audio( $text, $post_id ) {
 	if ( empty( $api_key ) ) {
 		return new WP_Error(
 			'missing_api_key',
-			__( 'Google Cloud API key is not configured. Please set it in the plugin settings.', 'simple-text-to-speech' )
+			esc_html__( 'Google Cloud API key is not configured. Please set it in the plugin settings.', 'simple-text-to-speech' )
 		);
 	}
 
 	if ( empty( $text ) ) {
 		return new WP_Error(
 			'empty_text',
-			__( 'No text content found to convert to speech.', 'simple-text-to-speech' )
+			esc_html__( 'No text content found to convert to speech.', 'simple-text-to-speech' )
 		);
 	}
 
@@ -97,7 +97,7 @@ function stts_generate_audio( $text, $post_id ) {
 		$error_data    = json_decode( $response_body, true );
 		$error_message = isset( $error_data['error']['message'] )
 			? $error_data['error']['message']
-			: __( 'Unknown API error occurred.', 'simple-text-to-speech' );
+			: esc_html__( 'Unknown API error occurred.', 'simple-text-to-speech' );
 		
 		return new WP_Error(
 			'api_error',
@@ -110,7 +110,7 @@ function stts_generate_audio( $text, $post_id ) {
 	if ( ! isset( $data['audioContent'] ) ) {
 		return new WP_Error(
 			'invalid_response',
-			__( 'Invalid response from Google Cloud API.', 'simple-text-to-speech' )
+			esc_html__( 'Invalid response from Google Cloud API.', 'simple-text-to-speech' )
 		);
 	}
 
@@ -194,8 +194,14 @@ function stts_save_audio_file( $audio_content, $post_id ) {
 	if ( false === $audio_data ) {
 		return new WP_Error(
 			'decode_error',
-			__( 'Failed to decode audio content.', 'simple-text-to-speech' )
+			esc_html__( 'Failed to decode audio content.', 'simple-text-to-speech' )
 		);
+	}
+
+	// Validate audio content by checking magic bytes (file signature).
+	$valid_audio = stts_validate_audio_content( $audio_data );
+	if ( is_wp_error( $valid_audio ) ) {
+		return $valid_audio;
 	}
 
 	// Require WordPress file handling functions.
@@ -211,13 +217,24 @@ function stts_save_audio_file( $audio_content, $post_id ) {
 	$upload_dir = wp_upload_dir();
 	$file_path  = $upload_dir['path'] . '/' . $filename;
 
-	// Save file.
+	// Save file temporarily.
 	$saved = file_put_contents( $file_path, $audio_data );
 	
 	if ( false === $saved ) {
 		return new WP_Error(
 			'save_error',
-			__( 'Failed to save audio file.', 'simple-text-to-speech' )
+			esc_html__( 'Failed to save audio file.', 'simple-text-to-speech' )
+		);
+	}
+
+	// Validate file type using WordPress functions.
+	$filetype = wp_check_filetype( $filename, stts_get_allowed_audio_mimes() );
+	if ( ! $filetype['type'] ) {
+		// Delete invalid file.
+		wp_delete_file( $file_path );
+		return new WP_Error(
+			'invalid_file_type',
+			esc_html__( 'Invalid audio file type. Only browser-compatible audio formats are allowed.', 'simple-text-to-speech' )
 		);
 	}
 
@@ -226,7 +243,7 @@ function stts_save_audio_file( $audio_content, $post_id ) {
 		'post_mime_type' => 'audio/mpeg',
 		'post_title'     => sprintf(
 			/* translators: %s: post title */
-			__( 'Audio for: %s', 'simple-text-to-speech' ),
+			esc_html__( 'Audio for: %s', 'simple-text-to-speech' ),
 			$post_title
 		),
 		'post_content'   => '',
@@ -266,7 +283,7 @@ function stts_delete_audio( $post_id ) {
 	if ( empty( $attachment_id ) ) {
 		return new WP_Error(
 			'no_audio',
-			__( 'No audio file found for this post.', 'simple-text-to-speech' )
+			esc_html__( 'No audio file found for this post.', 'simple-text-to-speech' )
 		);
 	}
 
@@ -275,7 +292,7 @@ function stts_delete_audio( $post_id ) {
 	if ( false === $deleted ) {
 		return new WP_Error(
 			'delete_error',
-			__( 'Failed to delete audio file.', 'simple-text-to-speech' )
+			esc_html__( 'Failed to delete audio file.', 'simple-text-to-speech' )
 		);
 	}
 
@@ -315,7 +332,7 @@ function stts_check_usage_limit( $character_count ) {
 			'usage_limit_exceeded',
 			sprintf(
 				/* translators: 1: Current usage, 2: Limit */
-				__( 'Monthly character limit exceeded. You have used %1$s of %2$s characters this month. Usage resets on the 1st of next month.', 'simple-text-to-speech' ),
+				esc_html__( 'Monthly character limit exceeded. You have used %1$s of %2$s characters this month. Usage resets on the 1st of next month.', 'simple-text-to-speech' ),
 				number_format_i18n( $monthly_usage ),
 				number_format_i18n( $usage_limit )
 			)
@@ -374,5 +391,100 @@ function stts_get_usage_stats() {
 		'usage_percent'   => ( $usage_limit > 0 ) ? min( 100, round( ( $monthly_usage / $usage_limit ) * 100, 1 ) ) : 0,
 		'remaining'       => max( 0, $usage_limit - $monthly_usage ),
 		'limit_reached'   => $monthly_usage >= $usage_limit,
+	);
+}
+
+/**
+ * Get allowed audio MIME types for browser playback
+ * Returns in format required by wp_check_filetype()
+ *
+ * @return array Allowed audio MIME types (extension => mime).
+ * @since 1.0.0
+ */
+function stts_get_allowed_audio_mimes() {
+	// Use centralized extensions from main plugin file.
+	$extensions = stts_get_allowed_audio_extensions();
+	
+	// Map extensions to their MIME types.
+	$mime_map = array(
+		'mp3'  => 'audio/mpeg',
+		'wav'  => 'audio/wav',
+		'ogg'  => 'audio/ogg',
+		'oga'  => 'audio/ogg',
+		'webm' => 'audio/webm',
+		'm4a'  => 'audio/mp4',
+		'aac'  => 'audio/aac',
+		'flac' => 'audio/flac',
+	);
+	
+	// Build return array with only allowed extensions.
+	$allowed = array();
+	foreach ( $extensions as $ext ) {
+		if ( isset( $mime_map[ $ext ] ) ) {
+			$allowed[ $ext ] = $mime_map[ $ext ];
+		}
+	}
+	
+	return $allowed;
+}
+
+/**
+ * Validate audio content by checking magic bytes (file signature)
+ *
+ * @param string $audio_data Binary audio data.
+ * @return true|WP_Error True if valid, WP_Error if invalid.
+ * @since 1.0.0
+ */
+function stts_validate_audio_content( $audio_data ) {
+	if ( empty( $audio_data ) || strlen( $audio_data ) < 12 ) {
+		return new WP_Error(
+			'invalid_audio',
+			esc_html__( 'Audio content is empty or too small.', 'simple-text-to-speech' )
+		);
+	}
+
+	// Get first 12 bytes for magic number detection.
+	$header = substr( $audio_data, 0, 12 );
+	
+	// Define magic bytes for common audio formats that browsers can play.
+	$audio_signatures = array(
+		// MP3 - ID3v2 or MPEG audio frame sync.
+		'mp3_id3'   => array( "\x49\x44\x33", 0 ), // ID3.
+		'mp3_mpeg1' => array( "\xFF\xFB", 0 ),     // MPEG-1 Layer 3.
+		'mp3_mpeg2' => array( "\xFF\xF3", 0 ),     // MPEG-2 Layer 3.
+		'mp3_mpeg25'=> array( "\xFF\xF2", 0 ),     // MPEG-2.5 Layer 3.
+		
+		// WAV - RIFF.
+		'wav'       => array( "\x52\x49\x46\x46", 0 ), // RIFF.
+		
+		// OGG - OggS.
+		'ogg'       => array( "\x4F\x67\x67\x53", 0 ), // OggS.
+		
+		// M4A/AAC - ftyp.
+		'm4a'       => array( "\x66\x74\x79\x70", 4 ), // ftyp at offset 4.
+		
+		// FLAC - fLaC.
+		'flac'      => array( "\x66\x4C\x61\x43", 0 ), // fLaC.
+		
+		// WebM - EBML.
+		'webm'      => array( "\x1A\x45\xDF\xA3", 0 ), // EBML.
+	);
+
+	// Check if data matches any audio signature.
+	foreach ( $audio_signatures as $format => $signature ) {
+		list( $magic_bytes, $offset ) = $signature;
+		$magic_length = strlen( $magic_bytes );
+		
+		if ( strlen( $header ) >= ( $offset + $magic_length ) ) {
+			$file_bytes = substr( $header, $offset, $magic_length );
+			if ( $file_bytes === $magic_bytes ) {
+				return true;
+			}
+		}
+	}
+
+	return new WP_Error(
+		'invalid_audio_format',
+		esc_html__( 'File does not appear to be a valid audio format. Only browser-compatible audio files are allowed.', 'simple-text-to-speech' )
 	);
 }

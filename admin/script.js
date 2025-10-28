@@ -63,6 +63,10 @@
 			uploadButton.addEventListener('click', function(e) {
 				e.preventDefault();
 				
+				// Get allowed types from PHP (centralized configuration)
+				const allowedMimeTypes = window.sttsAudioConfig?.allowedMimes || [];
+				const allowedExtensions = window.sttsAudioConfig?.allowedExtensions || [];
+				
 				const mediaUploader = wp.media({
 					title: uploadButton.dataset.title || 'Select Audio File',
 					button: {
@@ -76,6 +80,31 @@
 				
 				mediaUploader.on('select', function() {
 					const attachment = mediaUploader.state().get('selection').first().toJSON();
+					
+					// Validate MIME type
+					if ( attachment.mime && ! allowedMimeTypes.includes( attachment.mime ) ) {
+						alert( 
+							'Audio format "' + attachment.mime + '" is not supported.\n\n' +
+							'Please use one of the following formats:\n' +
+							'MP3, WAV, OGG, WebM, M4A, AAC, or FLAC'
+						);
+						return;
+					}
+					
+					// Validate file extension
+					if ( attachment.filename ) {
+						const ext = attachment.filename.split('.').pop().toLowerCase();
+						
+						if ( ! allowedExtensions.includes( ext ) ) {
+							alert( 
+								'File extension ".' + ext + '" is not supported.\n\n' +
+								'Please use one of the following formats:\n' +
+								'MP3, WAV, OGG, WebM, M4A, AAC, or FLAC'
+							);
+							return;
+						}
+					}
+					
 					const hiddenInput = document.getElementById('stts_uploaded_audio_id');
 					
 					if (hiddenInput) {

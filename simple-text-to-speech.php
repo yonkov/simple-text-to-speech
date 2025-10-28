@@ -95,7 +95,10 @@ function stts_enqueue_editor_assets() {
 			'apiUrl'  => rest_url( 'simple-tts/v1' ),
 			'hasApiKey' => ! empty( get_option( 'stts_google_api_key' ) ),
 			'languageName' => stts_get_current_language_name(),
+			'speakingStyle' => stts_get_current_speaking_style_name(),
 			'settingsUrl' => admin_url( 'options-general.php?page=simple_text_to_speech' ),
+			'allowedAudioMimes' => stts_get_allowed_audio_mime_types(),
+			'allowedAudioExtensions' => stts_get_allowed_audio_extensions(),
 		)
 	);
 }
@@ -114,6 +117,107 @@ function stts_get_current_language_name() {
 }
 
 /**
+ * Get current speaking style name
+ *
+ * @return string Speaking style name.
+ * @since 1.0.0
+ */
+function stts_get_current_speaking_style_name() {
+	$speaking_style = get_option( 'stts_speaking_style', 'neutral' );
+	
+	$speaking_styles = array(
+		'neutral' => esc_html__( 'Neutral', 'simple-text-to-speech' ),
+		'calm'    => esc_html__( 'Calm', 'simple-text-to-speech' ),
+		'serious' => esc_html__( 'Serious', 'simple-text-to-speech' ),
+		'excited' => esc_html__( 'Excited', 'simple-text-to-speech' ),
+	);
+	
+	return isset( $speaking_styles[ $speaking_style ] ) ? $speaking_styles[ $speaking_style ] : $speaking_style;
+}
+
+/**
+ * Get allowed audio MIME types for browser playback
+ * Centralized list used by both PHP and JavaScript
+ *
+ * @return array Allowed audio MIME types.
+ * @since 1.0.0
+ */
+function stts_get_allowed_audio_mime_types() {
+	return array(
+		'audio/mpeg',      // MP3
+		'audio/mp3',       // MP3 (alternative)
+		'audio/wav',       // WAV
+		'audio/ogg',       // OGG
+		'audio/webm',      // WebM
+		'audio/mp4',       // M4A
+		'audio/aac',       // AAC
+		'audio/flac',      // FLAC
+		'audio/x-m4a',     // M4A (alternative)
+		'audio/x-wav',     // WAV (alternative)
+	);
+}
+
+/**
+ * Get allowed audio file extensions
+ * Centralized list used by both PHP and JavaScript
+ *
+ * @return array Allowed audio file extensions.
+ * @since 1.0.0
+ */
+function stts_get_allowed_audio_extensions() {
+	return array( 'mp3', 'wav', 'ogg', 'oga', 'webm', 'm4a', 'aac', 'flac' );
+}
+
+/**
+ * Enqueue meta box scripts
+ *
+ * @since 1.0.0
+ */
+function stts_enqueue_meta_box_scripts() {
+	$current_screen = get_current_screen();
+	
+	// Only enqueue on post edit screens.
+	if ( ! $current_screen || 'post' !== $current_screen->base ) {
+		return;
+	}
+	
+	// Don't enqueue if Block Editor is active.
+	if ( method_exists( $current_screen, 'is_block_editor' ) && $current_screen->is_block_editor() ) {
+		return;
+	}
+	
+	// Enqueue WordPress media scripts for upload functionality.
+	wp_enqueue_media();
+	
+	wp_enqueue_script(
+		'stts-meta-box',
+		STTS_URL . 'admin/meta-box.js',
+		array(),
+		STTS_VERSION,
+		true
+	);
+	
+	wp_enqueue_script(
+		'stts-admin-script',
+		STTS_URL . 'admin/script.js',
+		array( 'jquery' ),
+		STTS_VERSION,
+		true
+	);
+	
+	// Pass allowed audio types to JavaScript.
+	wp_localize_script(
+		'stts-admin-script',
+		'sttsAudioConfig',
+		array(
+			'allowedMimes' => stts_get_allowed_audio_mime_types(),
+			'allowedExtensions' => stts_get_allowed_audio_extensions(),
+		)
+	);
+}
+add_action( 'admin_enqueue_scripts', 'stts_enqueue_meta_box_scripts' );
+
+/**
  * Add meta box for Classic Editor and other editors
  *
  * @since 1.0.0
@@ -130,7 +234,7 @@ function stts_add_meta_box() {
 	foreach ( $post_types as $post_type ) {
 		add_meta_box(
 			'stts_meta_box',
-			__( 'Text to Speech', 'simple-text-to-speech' ),
+			esc_html__( 'Text to Speech', 'simple-text-to-speech' ),
 			'stts_render_meta_box',
 			$post_type,
 			'side',
@@ -158,49 +262,55 @@ function stts_render_meta_box( $post ) {
 	$language_code = get_option( 'stts_language_code', 'en-US' );
 	$available_languages = stts_get_available_languages();
 	$language_name = isset( $available_languages[ $language_code ] ) ? $available_languages[ $language_code ] : $language_code;
+	$speaking_style = stts_get_current_speaking_style_name();
 	
 	wp_nonce_field( 'stts_upload_audio', 'stts_upload_audio_nonce' );
 	?>
 	<div class="stts-meta-box">
-		<?php if ( ! $has_api_key ) : ?>
+		<?php if ( ! $has_api_key && ! $audio_url ) : ?>
 			<p class="stts-notice stts-notice-warning">
 				<?php esc_html_e( 'Google Cloud API key is not configured.', 'simple-text-to-speech' ); ?>
 				<a href="<?php echo esc_url( admin_url( 'options-general.php?page=simple_text_to_speech' ) ); ?>">
 					<?php esc_html_e( 'Configure settings', 'simple-text-to-speech' ); ?>
 				</a>
 			</p>
-		<?php else : ?>
-			<p class="description" style="margin-top: 0;">
-				<?php
-				printf(
-					/* translators: 1: language name, 2: settings page URL */
-					esc_html__( 'Selected language: %1$s. Change in %2$s.', 'simple-text-to-speech' ),
-					'<strong>' . esc_html( $language_name ) . '</strong>',
-					'<a href="' . esc_url( admin_url( 'options-general.php?page=simple_text_to_speech' ) ) . '">' . esc_html__( 'plugin settings', 'simple-text-to-speech' ) . '</a>'
-				);
-				?>
-			</p>
 		<?php endif; ?>
 		
 		<?php if ( $audio_url ) : ?>
-			<p><?php esc_html_e( 'Audio file exists:', 'simple-text-to-speech' ); ?></p>
+		
 			<audio controls src="<?php echo esc_url( $audio_url ); ?>" style="width: 100%; margin: 10px 0;">
 				<?php esc_html_e( 'Your browser does not support the audio element.', 'simple-text-to-speech' ); ?>
 			</audio>
-			<p class="stts-meta-box-actions">
-				<a href="<?php echo esc_url( admin_url( 'admin-ajax.php?action=stts_delete_audio&post_id=' . $post->ID . '&nonce=' . wp_create_nonce( 'stts_delete_audio_' . $post->ID ) ) ); ?>" 
-				   class="button button-secondary button-small stts-delete-audio" 
-				   onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete the audio file?', 'simple-text-to-speech' ) ); ?>');">
+			<div class="stts-meta-box-actions">
+				<button type="button" 
+						class="button button-secondary button-small stts-delete-audio"
+						data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+						data-nonce="<?php echo esc_attr( wp_create_nonce( 'stts_delete_audio_' . $post->ID ) ); ?>"
+						onclick="return confirm('<?php echo esc_js( esc_html__( 'Are you sure you want to delete the audio file?', 'simple-text-to-speech' ) ); ?>');">
 					<?php esc_html_e( 'Delete Audio', 'simple-text-to-speech' ); ?>
-				</a>
-			</p>
+				</button>
+			</div>
 		<?php elseif ( $has_api_key ) : ?>
+			<p class="description" style="margin-top: 0;">
+				<?php
+				printf(
+					/* translators: 1: language name, 2: speaking style, 3: settings page URL, 4: line break */
+					esc_html__( 'Selected language: %1$s.%4$sTonality: %2$s.%4$sChange in %3$s.', 'simple-text-to-speech' ),
+					'<strong>' . esc_html( $language_name ) . '</strong>',
+					'<strong>' . esc_html( $speaking_style ) . '</strong>',
+					'<a href="' . esc_url( admin_url( 'options-general.php?page=simple_text_to_speech' ) ) . '">' . esc_html__( 'plugin settings', 'simple-text-to-speech' ) . '</a>',
+					'<br>'
+				);
+				?>
+			</p>
 			<p><?php esc_html_e( 'No audio file generated yet.', 'simple-text-to-speech' ); ?></p>
-			<p class="stts-meta-box-actions">
-				<a href="<?php echo esc_url( admin_url( 'admin-ajax.php?action=stts_generate_audio&post_id=' . $post->ID . '&nonce=' . wp_create_nonce( 'stts_generate_audio_' . $post->ID ) ) ); ?>" 
-				   class="button button-primary button-small stts-generate-audio">
+			<div class="stts-meta-box-actions">
+				<button type="button" 
+						class="button button-primary button-small stts-generate-audio"
+						data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+						data-nonce="<?php echo esc_attr( wp_create_nonce( 'stts_generate_audio_' . $post->ID ) ); ?>">
 					<?php esc_html_e( 'Generate Audio', 'simple-text-to-speech' ); ?>
-				</a>
+				</button>
 				<button type="button" 
 						class="button button-secondary button-small stts-upload-audio-btn"
 						data-title="<?php echo esc_attr__( 'Select Audio File', 'simple-text-to-speech' ); ?>"
@@ -208,7 +318,7 @@ function stts_render_meta_box( $post ) {
 					<?php esc_html_e( 'Upload Audio', 'simple-text-to-speech' ); ?>
 				</button>
 				<input type="hidden" name="stts_uploaded_audio_id" id="stts_uploaded_audio_id" value="" />
-			</p>
+			</div>
 			<p class="description">
 				<?php esc_html_e( 'Don\'t forget to save the post first. Audio will be generated from the saved content.', 'simple-text-to-speech' ); ?>
 			</p>
@@ -248,27 +358,46 @@ function stts_save_uploaded_audio( $post_id ) {
 	// Save the uploaded audio ID.
 	if ( isset( $_POST['stts_uploaded_audio_id'] ) && ! empty( $_POST['stts_uploaded_audio_id'] ) ) {
 		$audio_id = absint( $_POST['stts_uploaded_audio_id'] );
+		
+		// Validate that the attachment exists and is an audio file.
+		$attachment = get_post( $audio_id );
+		if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
+			return;
+		}
+		
+		// Get attachment MIME type.
+		$mime_type = get_post_mime_type( $audio_id );
+		
+		// Validate MIME type.
+		if ( ! in_array( $mime_type, stts_get_allowed_audio_mime_types(), true ) ) {
+			// Not a valid audio format - don't save.
+			return;
+		}
+		
 		update_post_meta( $post_id, '_stts_audio_attachment_id', $audio_id );
 	}
 }
 add_action( 'save_post', 'stts_save_uploaded_audio' );
 
 /**
- * AJAX handler for generating audio from meta box
+ * Handler for generating audio from meta box
  *
  * @since 1.0.0
  */
 function stts_ajax_generate_audio() {
-	if ( ! isset( $_GET['post_id'] ) || ! isset( $_GET['nonce'] ) ) {
+	// Check if post_id is set.
+	if ( ! isset( $_POST['post_id'] ) ) {
 		wp_die( esc_html__( 'Invalid request.', 'simple-text-to-speech' ) );
 	}
 	
-	$post_id = absint( $_GET['post_id'] );
+	$post_id = absint( $_POST['post_id'] );
 	
-	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nonce'] ) ), 'stts_generate_audio_' . $post_id ) ) {
+	// Check nonce.
+	if ( ! isset( $_POST['stts_generate_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['stts_generate_nonce'] ) ), 'stts_generate_audio_' . $post_id ) ) {
 		wp_die( esc_html__( 'Security check failed.', 'simple-text-to-speech' ) );
 	}
 	
+	// Check permissions.
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		wp_die( esc_html__( 'You do not have permission to edit this post.', 'simple-text-to-speech' ) );
 	}
@@ -307,24 +436,27 @@ function stts_ajax_generate_audio() {
 	wp_safe_redirect( $redirect_url );
 	exit;
 }
-add_action( 'wp_ajax_stts_generate_audio', 'stts_ajax_generate_audio' );
+add_action( 'admin_post_stts_generate_audio', 'stts_ajax_generate_audio' );
 
 /**
- * AJAX handler for deleting audio from meta box
+ * Handler for deleting audio from meta box
  *
  * @since 1.0.0
  */
 function stts_ajax_delete_audio() {
-	if ( ! isset( $_GET['post_id'] ) || ! isset( $_GET['nonce'] ) ) {
+	// Check if post_id is set.
+	if ( ! isset( $_POST['post_id'] ) ) {
 		wp_die( esc_html__( 'Invalid request.', 'simple-text-to-speech' ) );
 	}
 	
-	$post_id = absint( $_GET['post_id'] );
+	$post_id = absint( $_POST['post_id'] );
 	
-	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nonce'] ) ), 'stts_delete_audio_' . $post_id ) ) {
+	// Check nonce.
+	if ( ! isset( $_POST['stts_delete_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['stts_delete_nonce'] ) ), 'stts_delete_audio_' . $post_id ) ) {
 		wp_die( esc_html__( 'Security check failed.', 'simple-text-to-speech' ) );
 	}
 	
+	// Check permissions.
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		wp_die( esc_html__( 'You do not have permission to edit this post.', 'simple-text-to-speech' ) );
 	}
@@ -349,7 +481,7 @@ function stts_ajax_delete_audio() {
 	wp_safe_redirect( $redirect_url );
 	exit;
 }
-add_action( 'wp_ajax_stts_delete_audio', 'stts_ajax_delete_audio' );
+add_action( 'admin_post_stts_delete_audio', 'stts_ajax_delete_audio' );
 
 /**
  * Display admin notices

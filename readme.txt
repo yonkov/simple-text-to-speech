@@ -16,7 +16,7 @@ Easily generate audio version of your content using Google Cloud Text-to-Speech 
 == Description ==
 
 Simple Text to Speech is a WordPress plugin that allows you to convert WordPress posts and pages to audio. It uses [Google Cloud Text-to-Speech API]((https://console.cloud.google.com/marketplace/product/google/texttospeech.googleapis.com)) with WaveNet realistic AI voices. 
-The plugin supports more than 30 languages and seamlessly integrates with the WordPress Block Editor but it also works in the good old Classic editor. 
+The plugin supports more than 50 languages and seamlessly integrates with the WordPress Block Editor but it also works in the good old Classic editor. 
 
 When the audio has been generated for a post (from the page editor sidebar), an audio player will be displayed automatically at the top of your post, which visitors can listen to.
 
@@ -24,13 +24,13 @@ When the audio has been generated for a post (from the page editor sidebar), an 
 
 * **Block Editor Integration** - Generate audio directly from the post/page editor with a convenient sidebar panel
 * **AI Voices** - Use Google's premium WaveNet voices for natural-sounding speech
-* **Multiple Languages** - Supports over 30 languages and variants
+* **Multiple Languages** - Supports over 50 languages and variants
 * **Accessibility ready** - Improves content accessibility by providing audio versions of your posts and pages
 * **Automatic Storage** - Audio files are automatically saved to your WordPress Media Library
 * **Easy Management** - Delete audio files from either the editor panel or Media Library
 * **Custom audio upload** - Ability to upload audio from external sources and using human voices
 * **REST API** - Built-in REST API endpoints for audio generation and management
-* **Multi-language Support** - Supports 30+ languages and language variants
+* **Multi-language Support** - Supports 50+ languages and language variants
 
 = How It Works =
 

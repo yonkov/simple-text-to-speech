@@ -33,6 +33,7 @@ function TextToSpeechPanel() {
 	
 	// Get language info.
 	const languageName = window.sttsData?.languageName || '';
+	const speakingStyle = window.sttsData?.speakingStyle || '';
 	const settingsUrl = window.sttsData?.settingsUrl || '';
 
 	// Load audio status on mount.
@@ -173,6 +174,19 @@ function TextToSpeechPanel() {
 			return;
 		}
 
+		// Get allowed types from PHP (centralized configuration).
+		const allowedMimeTypes = window.sttsData?.allowedAudioMimes || [];
+
+		if ( media.mime && allowedMimeTypes.length > 0 && ! allowedMimeTypes.includes( media.mime ) ) {
+			setError( 
+				sprintf(
+					__( 'Audio format "%s" is not supported. Please use MP3, WAV, OGG, WebM, M4A, AAC, or FLAC.', 'simple-text-to-speech' ),
+					media.mime
+				)
+			);
+			return;
+		}
+
 		// Update post meta with the uploaded audio attachment ID.
 		editPost( { 
 			meta: { 
@@ -195,7 +209,7 @@ function TextToSpeechPanel() {
 			title={ __( 'Text to Speech', 'simple-text-to-speech' ) }
 			className="stts-document-panel"
 		>
-			{ ! hasApiKey && (
+			{ ! hasApiKey && ! audioData && (
 				<Notice status="warning" isDismissible={ false }>
 					{ __( 'Google Cloud API key is not configured.', 'simple-text-to-speech' ) }
 					{ ' ' }
@@ -247,7 +261,7 @@ function TextToSpeechPanel() {
 							variant="secondary"
 							isDestructive
 							onClick={ handleDeleteAudio }
-							disabled={ isDeleting || ! hasApiKey }
+							disabled={ isDeleting }
 						>
 							{ isDeleting ? (
 								<>
@@ -263,29 +277,36 @@ function TextToSpeechPanel() {
 					<div className="stts-no-audio">
 						{ hasApiKey && (
 							<>
-								<p>
-									{ __( 'Generate audio file.', 'simple-text-to-speech' ) }
-									{ ' ' }
-									<br />
-									{ languageName && (
-										<>
-											{ __( 'Selected language:', 'simple-text-to-speech' ) }
-											{ ' ' }
-											{ languageName }
-											{ '.' }
-											<br/>
-											{ __( 'Change in', 'simple-text-to-speech' ) }
-											{ ' ' }
-											<a href={ settingsUrl }>
-												{ __( 'plugin settings', 'simple-text-to-speech' ) }
-											</a>
-											{ '.' }
-										</>
-									) }
-								</p>
-
-								<div className="stts-action-buttons">
-									{ isPostDirty && ! success && (
+							<p>
+								{ __( 'Generate an audio file.', 'simple-text-to-speech' ) }
+								{ ' ' }
+								<br />
+								{ languageName && (
+									<>
+										{ __( 'Selected language:', 'simple-text-to-speech' ) }
+										{ ' ' }
+										{ languageName }
+										{ '.' }
+										<br/>
+										{ speakingStyle && (
+											<>
+												{ __( 'Tonality:', 'simple-text-to-speech' ) }
+												{ ' ' }
+												{ speakingStyle }
+												{ '.' }
+												<br/>
+											</>
+										) }
+										{ __( 'Change in', 'simple-text-to-speech' ) }
+										{ ' ' }
+										<a href={ settingsUrl }>
+											{ __( 'plugin settings', 'simple-text-to-speech' ) }
+										</a>
+										{ '.' }
+									</>
+								) }
+							</p>								<div className="stts-action-buttons">
+									{ isPostDirty && ! success && ! isGenerating && (
 										<Notice status="warning" isDismissible={ false }>
 											{ __( 'Please save your post first. Audio will be generated from the saved content.', 'simple-text-to-speech' ) }
 										</Notice>

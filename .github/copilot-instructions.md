@@ -51,7 +51,7 @@
 - **Component structure**: Functional components with hooks. Separate files for large components.
 - **State management**: Use `useState`, `useEffect`, and other React hooks
 - **Event handling**: Use `onClick`, `onChange` props for event handling
-- **Internationalization**: Use `__()`, `sprintf()` from `@wordpress/i18n` for all strings
+- **Internationalization**: Use `esc_html__()`, `sprintf()` from `@wordpress/i18n` for all strings
 - **Code formatting**: Follow WordPress JavaScript coding standards
 - **Consistent semicolons**: Always use semicolons at the end of statements
 - **File naming**: `kebab-case` for filenames (`my-component.js`)

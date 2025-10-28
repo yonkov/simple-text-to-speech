@@ -108,7 +108,7 @@ function stts_rest_generate_audio( $request ) {
 	if ( ! $post || ! current_user_can( 'edit_post', $post_id ) ) {
 		return new WP_Error(
 			'invalid_post',
-			__( 'Invalid post ID or insufficient permissions.', 'simple-text-to-speech' ),
+			esc_html__( 'Invalid post ID or insufficient permissions.', 'simple-text-to-speech' ),
 			array( 'status' => 403 )
 		);
 	}
@@ -153,7 +153,7 @@ function stts_rest_generate_audio( $request ) {
 	return new WP_REST_Response(
 		array(
 			'success'          => true,
-			'message'          => __( 'Audio successfully generated.', 'simple-text-to-speech' ),
+			'message'          => esc_html__( 'Audio successfully generated.', 'simple-text-to-speech' ),
 			'attachment_id'    => $result['attachment_id'],
 			'url'              => $result['url'],
 			'file_size'        => $file_size,
@@ -178,7 +178,7 @@ function stts_rest_delete_audio( $request ) {
 	if ( ! get_post( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
 		return new WP_Error(
 			'invalid_post',
-			__( 'Invalid post ID or insufficient permissions.', 'simple-text-to-speech' ),
+			esc_html__( 'Invalid post ID or insufficient permissions.', 'simple-text-to-speech' ),
 			array( 'status' => 403 )
 		);
 	}
@@ -197,7 +197,7 @@ function stts_rest_delete_audio( $request ) {
 	return new WP_REST_Response(
 		array(
 			'success' => true,
-			'message' => __( 'Audio deleted successfully.', 'simple-text-to-speech' ),
+			'message' => esc_html__( 'Audio deleted successfully.', 'simple-text-to-speech' ),
 		),
 		200
 	);
@@ -217,7 +217,7 @@ function stts_rest_get_audio_status( $request ) {
 	if ( ! get_post( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
 		return new WP_Error(
 			'invalid_post',
-			__( 'Invalid post ID or insufficient permissions.', 'simple-text-to-speech' ),
+			esc_html__( 'Invalid post ID or insufficient permissions.', 'simple-text-to-speech' ),
 			array( 'status' => 403 )
 		);
 	}

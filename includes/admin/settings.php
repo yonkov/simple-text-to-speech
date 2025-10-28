@@ -70,8 +70,8 @@ function stts_enqueue_admin_styles( $hook ) {
  */
 function stts_add_settings_page() {
 	add_options_page(
-		__( 'Simple Text to Speech Settings', 'simple-text-to-speech' ),
-		__( 'Simple Text to Speech', 'simple-text-to-speech' ),
+		esc_html__( 'Text to Speech Settings', 'simple-text-to-speech' ),
+		esc_html__( 'Text to Speech', 'simple-text-to-speech' ),
 		'manage_options',
 		'simple_text_to_speech',
 		'stts_render_settings_page'
@@ -134,7 +134,7 @@ function stts_save_settings() {
 	add_settings_error(
 		'stts_messages',
 		'stts_message',
-		__( 'Settings saved successfully.', 'simple-text-to-speech' ),
+		esc_html__( 'Settings saved successfully.', 'simple-text-to-speech' ),
 		'updated'
 	);
 }
@@ -223,12 +223,10 @@ function stts_render_settings_tab() {
 					/>
 					<p class="description">
 						<?php
-						echo wp_kses_post(
-							sprintf(
-								/* translators: %s: URL to Google Cloud Console */
-								__( 'Your Google Cloud API key with Text-to-Speech API enabled. Get it from the <a href="%s" target="_blank" rel="noopener">Google Cloud Console</a>.', 'simple-text-to-speech' ),
-								'https://console.cloud.google.com/apis/credentials'
-							)
+						printf(
+							/* translators: %s: link to Google Cloud Console */
+							esc_html__( 'Your Google Cloud API key with Text-to-Speech API enabled. Get it from the %s.', 'simple-text-to-speech' ),
+							'<a href="' . esc_url( 'https://console.cloud.google.com/apis/credentials' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Google Cloud Console', 'simple-text-to-speech' ) . '</a>'
 						);
 						?>
 					</p>
@@ -294,10 +292,10 @@ function stts_render_settings_tab() {
 					>
 						<?php
 						$speaking_styles = array(
-							'neutral' => __( 'Neutral (Default)', 'simple-text-to-speech' ),
-							'calm'    => __( 'Calm', 'simple-text-to-speech' ),
-							'serious' => __( 'Serious', 'simple-text-to-speech' ),
-							'excited' => __( 'Excited', 'simple-text-to-speech' ),
+							'neutral' => esc_html__( 'Neutral (Default)', 'simple-text-to-speech' ),
+							'calm'    => esc_html__( 'Calm', 'simple-text-to-speech' ),
+							'serious' => esc_html__( 'Serious', 'simple-text-to-speech' ),
+							'excited' => esc_html__( 'Excited', 'simple-text-to-speech' ),
 						);
 						foreach ( $speaking_styles as $style_value => $style_label ) :
 							?>
@@ -334,7 +332,7 @@ function stts_render_settings_tab() {
 			</tr>
 		</table>
 
-		<?php submit_button( __( 'Save Settings', 'simple-text-to-speech' ) ); ?>
+		<?php submit_button( esc_html__( 'Save Settings', 'simple-text-to-speech' ) ); ?>
 	</form>
 	<?php
 }
@@ -380,7 +378,7 @@ function stts_render_styles_tab() {
 			</tr>
 		</table>
 
-		<?php submit_button( __( 'Save Settings', 'simple-text-to-speech' ) ); ?>
+		<?php submit_button( esc_html__( 'Save Settings', 'simple-text-to-speech' ) ); ?>
 	</form>
 	<?php
 }
@@ -398,12 +396,10 @@ function stts_render_faq_tab() {
 			<h3><?php esc_html_e( '1. How to use this plugin?', 'simple-text-to-speech' ); ?></h3>
 			<p>
 				<?php
-				echo wp_kses_post(
-					sprintf(
-						/* translators: %s: URL to Google Cloud Console */
-						__( 'To use the plugin, you first need to create an account in <a href="%s" target="_blank" rel="noopener">Google Cloud</a> and get an API key for their Text to Speech service. After that, edit any post or page in the Block Editor and click the "Generate Audio" button in the right sidebar. You can also upload external audio via the "Upload Audio" button.', 'simple-text-to-speech' ),
-						'https://console.cloud.google.com/'
-					)
+				printf(
+					/* translators: %s: link to Google Cloud Console */
+					esc_html__( 'To use the plugin, you first need to create an account in %1$s and get an API key for their Text to Speech service. After that, edit any post or page in the Block Editor and click the "Generate Audio" button in the right sidebar. You can also upload external audio via the "Upload Audio" button.', 'simple-text-to-speech' ),
+					'<a href="' . esc_url( 'https://console.cloud.google.com/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Google Cloud', 'simple-text-to-speech' ) . '</a>'
 				);
 				?>
 			</p>
@@ -412,12 +408,15 @@ function stts_render_faq_tab() {
 			<h3><?php esc_html_e( '2. How do I get a Google Cloud API key?', 'simple-text-to-speech' ); ?></h3>
 			<p>
 				<?php
-				echo wp_kses_post(
-					sprintf(
-						/* translators: %s: URL to Google Cloud Console */
-						__( '1. Go to the <a href="%s" target="_blank" rel="noopener">Google Cloud Console</a><br>2. Create a new project or select an existing one<br>3. Enable the <a href="https://console.cloud.google.com/flows/enableapi?apiid=texttospeech.googleapis.com" target="_blank" rel="noopener">Text-to-Speech API</a><br>4. Go to "Credentials" and create an API key. Restrict the key to Cloud Text-to-Speech API<br>5. Copy the API key and paste it in the Settings tab', 'simple-text-to-speech' ),
-						'https://console.cloud.google.com/apis/credentials'
-					)
+				printf(
+					/* translators: %1$s: link to Google Cloud Console, %2$s: link to Text-to-Speech API, %3$s: settings link */
+					esc_html__( '1. Go to the %1$s%2$s2. Create a new project or select an existing one%3$s3. Enable the %4$s%5$s4. Go to "Credentials" and create an API key. Restrict the key to Cloud Text-to-Speech API%6$s5. Copy the API key and paste it in the Settings tab', 'simple-text-to-speech' ),
+					'<a href="' . esc_url( 'https://console.cloud.google.com/apis/credentials' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Google Cloud Console', 'simple-text-to-speech' ) . '</a>',
+					'<br>',
+					'<br>',
+					'<a href="' . esc_url( 'https://console.cloud.google.com/flows/enableapi?apiid=texttospeech.googleapis.com' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Text-to-Speech API', 'simple-text-to-speech' ) . '</a>',
+					'<br>',
+					'<br>'
 				);
 				?>
 			</p>
@@ -437,12 +436,10 @@ function stts_render_faq_tab() {
 			<h3><?php esc_html_e( '5. What languages are supported?', 'simple-text-to-speech' ); ?></h3>
 			<p>
 				<?php
-				echo wp_kses_post(
-					sprintf(
-						/* translators: %s: URL to supported languages */
-						__( 'Google Cloud Text-to-Speech supports over 30 languages and variants. You can find the complete list of <a href="%s" target="_blank" rel="noopener">supported languages and voices</a> in the Google Cloud documentation.', 'simple-text-to-speech' ),
-						'https://cloud.google.com/text-to-speech/docs/voices'
-					)
+				printf(
+					/* translators: %s: link to supported languages */
+					esc_html__( 'Google Cloud Text-to-Speech supports over 30 languages and variants. You can find the complete list of %s in the Google Cloud documentation.', 'simple-text-to-speech' ),
+					'<a href="' . esc_url( 'https://cloud.google.com/text-to-speech/docs/voices' ) . '" target="_blank" rel="noopener">' . esc_html__( 'supported languages and voices', 'simple-text-to-speech' ) . '</a>'
 				);
 				?>
 			</p>
@@ -452,12 +449,10 @@ function stts_render_faq_tab() {
 			<h3><?php esc_html_e( '6. Does this plugin cost money?', 'simple-text-to-speech' ); ?></h3>
 			<p>
 				<?php
-				echo wp_kses_post(
-					sprintf(
-						/* translators: %s: URL to pricing */
-						__( 'The plugin is free but Google Cloud Text-to-Speech is a paid service with a generous free tier of 1 million characters per month for WaveNet voices, which is what this plugin uses. Check the <a href="%s" target="_blank" rel="noopener">Google Cloud pricing</a> for additional information.', 'simple-text-to-speech' ),
-						'https://cloud.google.com/text-to-speech/pricing'
-					)
+				printf(
+					/* translators: %s: link to pricing page */
+					esc_html__( 'The plugin is free but Google Cloud Text-to-Speech is a paid service with a generous free tier of 1 million characters per month for WaveNet voices, which is what this plugin uses. Check the %s for additional information.', 'simple-text-to-speech' ),
+					'<a href="' . esc_url( 'https://cloud.google.com/text-to-speech/pricing' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Google Cloud pricing', 'simple-text-to-speech' ) . '</a>'
 				);
 				?>
 			</p>
