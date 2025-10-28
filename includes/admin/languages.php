@@ -2,7 +2,7 @@
 /**
  * Language and Voice Configuration
  *
- * @package SimpleTextToSpeech
+ * @package Simple Text to Speech
  * @since 1.0.0
  * @link https://docs.cloud.google.com/text-to-speech/docs/list-voices-and-types
  */

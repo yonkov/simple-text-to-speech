@@ -2,7 +2,7 @@
 /**
  * Settings Page Handler
  *
- * @package SimpleTextToSpeech
+ * @package Simple Text to Speech
  * @since 1.0.0
  */
 

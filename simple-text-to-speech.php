@@ -11,7 +11,7 @@
  * License: GPLv2
  * Text Domain: simple-text-to-speech
  *
- * @package SimpleTextToSpeech
+ * @package Simple Text to Speech
  * @since 1.0.0
  */
 

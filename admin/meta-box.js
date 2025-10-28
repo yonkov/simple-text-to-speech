@@ -3,7 +3,7 @@
  *
  * Handles Generate and Delete audio actions in Classic Editor meta box
  *
- * @package SimpleTextToSpeech
+ * @package Simple Text to Speech
  * @since 1.0.0
  */
 

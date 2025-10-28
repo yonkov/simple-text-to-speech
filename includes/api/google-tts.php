@@ -2,7 +2,7 @@
 /**
  * Google Cloud Text-to-Speech API Handler
  *
- * @package SimpleTextToSpeech
+ * @package Simple Text to Speech
  * @since 1.0.0
  */
 
