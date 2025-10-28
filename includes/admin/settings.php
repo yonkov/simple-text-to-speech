@@ -438,7 +438,7 @@ function stts_render_faq_tab() {
 				<?php
 				printf(
 					/* translators: %s: link to supported languages */
-					esc_html__( 'Google Cloud Text-to-Speech supports over 30 languages and variants. You can find the complete list of %s in the Google Cloud documentation.', 'simple-text-to-speech' ),
+					esc_html__( 'Google Cloud Text-to-Speech supports over 50 languages and variants. You can find the complete list of %s in the Google Cloud documentation.', 'simple-text-to-speech' ),
 					'<a href="' . esc_url( 'https://cloud.google.com/text-to-speech/docs/voices' ) . '" target="_blank" rel="noopener">' . esc_html__( 'supported languages and voices', 'simple-text-to-speech' ) . '</a>'
 				);
 				?>
