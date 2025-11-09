@@ -457,6 +457,19 @@ function stts_render_faq_tab() {
 				?>
 			</p>
 		</div>
+
+		<div class="stts-faq-item">
+			<h3><?php esc_html_e( '7. Where can I read more about this plugin?', 'simple-text-to-speech' ); ?></h3>
+			<p>
+				<?php
+				printf(
+					/* translators: %s: link to pricing page */
+					esc_html__( 'A detailed overview of the plugin is available %s.', 'simple-text-to-speech' ),
+					'<a href="' . esc_url( 'https://nasiothemes.com/how-to-generate-audio-versions-of-your-wordpress-posts-and-pages-with-ai/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'here', 'simple-text-to-speech' ) . '</a>'
+				);
+				?>
+			</p>
+		</div>
 	</div>
 	<?php
 }

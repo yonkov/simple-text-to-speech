@@ -90,6 +90,10 @@ Google Cloud Text-to-Speech supports over 50 languages and variants. You can fin
 
 The plugin is free but Google Cloud Text-to-Speech is a paid service with a generous free tier of 1 million characters per month for WaveNet voices, which is what this plugin uses. Check the [Google Cloud pricing](https://cloud.google.com/text-to-speech/pricing) for additional information.
 
+= 7. Where can I read more about this plugin? =
+
+A detailed overview of the plugin is available [here](https://nasiothemes.com/how-to-generate-audio-versions-of-your-wordpress-posts-and-pages-with-ai/).
+
 == Changelog ==
 
 = 1.0.0 - October 2025 =
