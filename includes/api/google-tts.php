@@ -300,20 +300,23 @@ function stts_save_audio_file( $audio_content, $post_id ) {
 		return $valid_audio;
 	}
 
-	// Require WordPress file handling functions.
-	require_once ABSPATH . 'wp-admin/includes/file.php';
-	require_once ABSPATH . 'wp-admin/includes/media.php';
-	require_once ABSPATH . 'wp-admin/includes/image.php';
-
 	// Generate filename.
 	$post_title = get_the_title( $post_id );
 	$filename   = sanitize_file_name( $post_title . '-audio-' . time() . '.mp3' );
 
 	// Get upload directory.
 	$upload_dir = wp_upload_dir();
-	$file_path  = $upload_dir['path'] . '/' . $filename;
+	
+	if ( ! empty( $upload_dir['error'] ) ) {
+		return new WP_Error(
+			'upload_dir_error',
+			$upload_dir['error']
+		);
+	}
+	
+	$file_path = $upload_dir['path'] . '/' . $filename;
 
-	// Save file temporarily.
+	// Save file.
 	$saved = file_put_contents( $file_path, $audio_data );
 	
 	if ( false === $saved ) {
@@ -336,7 +339,7 @@ function stts_save_audio_file( $audio_content, $post_id ) {
 
 	// Prepare attachment data.
 	$attachment = array(
-		'post_mime_type' => 'audio/mpeg',
+		'post_mime_type' => $filetype['type'],
 		'post_title'     => sprintf(
 			/* translators: %s: post title */
 			esc_html__( 'Audio for: %s', 'simple-text-to-speech' ),
@@ -344,18 +347,24 @@ function stts_save_audio_file( $audio_content, $post_id ) {
 		),
 		'post_content'   => '',
 		'post_status'    => 'inherit',
+		'guid'           => $upload_dir['url'] . '/' . $filename,
 	);
 
 	// Insert attachment.
 	$attachment_id = wp_insert_attachment( $attachment, $file_path, $post_id );
 	
 	if ( is_wp_error( $attachment_id ) ) {
+		wp_delete_file( $file_path );
 		return $attachment_id;
 	}
 
-	// Generate attachment metadata.
-	$attachment_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
-	wp_update_attachment_metadata( $attachment_id, $attachment_data );
+	// Set basic attachment metadata manually (audio files don't need complex metadata extraction).
+	$file_size = file_exists( $file_path ) ? filesize( $file_path ) : 0;
+	$metadata  = array(
+		'file'     => wp_basename( $file_path ),
+		'filesize' => $file_size,
+	);
+	wp_update_attachment_metadata( $attachment_id, $metadata );
 
 	// Store reference in post meta.
 	update_post_meta( $post_id, '_stts_audio_attachment_id', $attachment_id );
