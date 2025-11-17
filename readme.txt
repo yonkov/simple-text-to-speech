@@ -15,21 +15,21 @@ Easily generate audio version of your content using Google Cloud Text-to-Speech 
 
 == Description ==
 
-Simple Text to Speech is a small and easy to use but powerful WordPress plugin that uses AI to convert WordPress posts and pages to audio.
+Simple Text to Speech is a small and easy to use text to speech (TTS) WordPress plugin that uses AI to generate audio versions of your posts and pages.
+
 The plugin supports more than 50 languages and seamlessly integrates with the WordPress Block Editor but it also supports the good old Classic editor. 
 
-When the audio has been generated for a post (from the page editor sidebar), an audio player will be displayed automatically at the top of your post, which visitors can listen to. You can also upload your own audio files from external sources, allowing you to use human voices too. The audio files will appear on top of your posts and pages, improving accessibility and user engagement.
+When the audio has been generated for a post or a page from the Block editor sidebar, an audio player will be displayed automatically at the top of your page, which visitors can listen to. You can also upload audio files from external sources, enabling you to use real human voices if you want. The audio files will appear on top of the page, improving accessibility and user engagement.
 
 = Features =
 
-* **Block Editor Integration** - Generate audio directly from the post/page editor with a convenient sidebar panel
-* **AI Voices** - Use Google's premium WaveNet voices for natural-sounding speech
+* **Block Editor Integration** - Generate audio directly from the post/page editor from the sidebar panel
+* **AI Voices** - Use Google's WaveNet voices for natural-sounding speech
 * **Multiple Languages** - Supports over 50 languages and variants
 * **Accessibility ready** - Improves content accessibility by providing audio versions of your posts and pages
 * **Automatic Storage** - Audio files are automatically saved to your WordPress Media Library
-* **Easy Management** - Delete audio files from either the editor panel or Media Library
-* **Custom audio upload** - Ability to upload audio from external sources and use human voices
-* **REST API** - Built-in REST API endpoints for audio generation and management
+* **Easy Management** - Delete audio files from either the editor panel or the Media Library
+* **Custom audio upload** - Ability to upload audio from external sources and use real human voices
 * **Multi-language Support** - Supports 50+ languages and language variants
 
 = How It Works =
@@ -96,5 +96,11 @@ A detailed overview of the plugin is available [here](https://nasiothemes.com/ho
 
 == Changelog ==
 
-= 1.0.0 - October 2025 =
+= 1.0.0 - November 2025 =
 * Initial release
+
+== Screenshots ==
+
+1. Plugin settings page: Configure Simple Text to Speech plugin
+2. Block editor: Generate audio from the block editor sidebar
+3. Audio player with AI-generated audio on top of the page
